@@ -224,7 +224,7 @@ pub fn update_order() -> DispatchResult;
 #[pallet::call_index(3)]
 pub fn cancel_order() -> DispatchResult;
 
-#[pallet::weight(T::WeightInfo::cancel_order())]
+#[pallet::weight(T::WeightInfo::dispute_order())]
 #[pallet::call_index(4)]
 pub fn dispute_order() -> DispatchResult;
 
