@@ -197,87 +197,22 @@ Benefits:
 #[pallet::call_index(0)]
 pub fn create() -> DispatchResult;
 
-/// Match existing order
-#[pallet::weight(T::WeightInfo::initiate_order_match())]
-#[pallet::call_index(1)]
-pub fn initiate_order_match() -> DispatchResult;
-
-#[pallet::weight(T::WeightInfo::accept_match())]
-#[pallet::call_index(2)]
-pub fn accept_match() -> DispatchResult;
-
-#[pallet::weight(T::WeightInfo::reject_match())]
-#[pallet::call_index(2)]
-pub fn reject_match() -> DispatchResult;
-
-#[pallet::weight(T::WeightInfo::cancel_order_match())]
-#[pallet::call_index(2)]
-pub fn cancel_initiated_match() -> DispatchResult;
-
-/// Update order parameters
-#[pallet::weight(T::WeightInfo::update_order())]
-#[pallet::call_index(2)]
-pub fn update_order() -> DispatchResult;
-
 /// Cancel unfilled order
 #[pallet::weight(T::WeightInfo::cancel_order())]
-#[pallet::call_index(3)]
+#[pallet::call_index(1)]
 pub fn cancel_order() -> DispatchResult;
 
 #[pallet::weight(T::WeightInfo::dispute_order())]
-#[pallet::call_index(4)]
+#[pallet::call_index(2)]
 pub fn dispute_order() -> DispatchResult;
 
 ```
 
 #### Data Structure
 ```rust
-#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-#[scale_info(skip_type_params(T))]
-pub struct OrderDetails<T: Config> {
-    pub creator: T::AccountId,
-    pub pair: (T::AssetId, Fiat),
-    pub amount: DepositBalanceOf<T>,
-    pub price: FixedU128,
-    pub payment_method: PaymentMethod<T>,
-    pub status: OrderStatus<T::AccountId, ProvidedBlockNumber<T>>,
-    pub created_at: ProvidedBlockNumber<T>,
-}
+pub struct OrderDetails<T> {...}
 
-#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub enum OrderStatus<AccountId, BlockNumber> {
-    Open,
-    Matched {
-        counterparty: AccountId,
-        matched_at: BlockNumber,
-    },
-    Cancelled,
-}
-```
-
-#### Events
-```rust
-#[pallet::event]
-#[pallet::generate_deposit(pub(super) fn deposit_event)]
-pub enum Event<T: Config> {
-    OrderMatchQueued {
-        order_id: T::OrderId,
-        who: T::AccountId,
-    },
-    OrderMatchAccepted {
-        order_id: T::OrderId,
-        matcher: T::AccountId,
-        owner: T::AccountId,
-    },
-    OrderMatchRejected {
-        order_id: T::OrderId,
-        matcher: T::AccountId,
-    },
-    OrderMatchCancelled {
-        order_id: T::OrderId,
-        matcher: T::AccountId,
-    },
-}
+pub enum OrderStatus<T> {...}
 ```
 
 ### 2. Escrow Pallet
@@ -298,31 +233,10 @@ fn release_funds() -> DispatchResult;
 
 #### Data Structures
 ```rust
-struct Escrow<AccountId, Balance> {
-    buyer: AccountId,
-    seller: AccountId,
-    asset: AssetId,
-    amount: Balance,
-    status: EscrowStatus,
-    created_at: BlockNumber,
-    timeout: BlockNumber,
-}
+struct Escrow<T> {...}
 
-enum EscrowStatus {
-    Locked,
-    Released(AccountId),
-    Disputed(DisputeId),
-    Refunded,
-}
+enum EscrowStatus {...}
 
-```
-
-#### Events
-```rust
-FundsLocked(EscrowId, AccountId, Balance);
-FundsReleased(EscrowId, AccountId);
-DisputeInitiated(EscrowId, DisputeId);
-AutoRefundTriggered(EscrowId);
 ```
 
 
@@ -423,32 +337,24 @@ Damilare Akinlose - [Polkadot Fellowship Member](https://github.com/polkadot-fel
 ## Future Plans
 
 ### Short-Term(Q3 2025)
-#### MVP Launch 
 **Testnet Deployment**: Onboard 1000+ traders and gather feedback.
-#### Development Financing
+
 **OpenGov Treasury Financing**: After delivering Milestone 1(MVP), we will submit follow-up proposals to Polkadot's OpenGov for Milestones 2-4, leveraging community governance for suitable funding.
 
-#### Milestone 2 — DAO Abitration and Reputation System
-| Number | Deliverable | Specification |
-| -----: | ----------- | ------------- |
-| 1. | Governance Pallet & Arbitrator System | Implement abitrator initialization with slashing for malicious rulings. |
-| 2. | Reputation Pallet | On-chain scoring system, tracking transaction success rates and dispute history. Tiered penalties, sybli-resistant limits and on-chain recovery paths. |
-| 3. | Dispute Workflow | Comprehensive testing of dispute lifecycle (initiation → evidence submission → DAO voting), using IPFS for evidence upload and updates. |
+-   #### Milestone 2 — DAO Abitration and Reputation System
+    Develop a decentralized arbitration framework featuring a mechanism for malicious rulings, 
+    an on-chain **Reputation Pallet** tracking transaction success rates and dispute history (enforcing tiered penalties, sybil-resistant limits, and recovery paths), 
+    and a rigorosuly tested **Dispute Workflow** integrating IPFS for evidence management across initiation, submission, and DAO voting stages.
 
 
-#### Milestone 3 — Communication Protocol
-| Number | Deliverable | Specification |
-| -----: | ----------- | ------------- |
-| 1. | LibP2P Module | End-to-end encrypted chat protocol. |
-| 2. | Reputation Integration | Auto-flag users based on reputation scores. |
+-   #### Milestone 3 — Communication Protocol
+    Build a secure, end-to-end encrypted **LibP2P chat protocol** and integrate reputation-based **auto-flagging** mechanism to dynamically 
+    restrict users with low scores, entrusting trusless communication aligned with on-chain behavioural metrics
 
-
-#### Milestone 4 — XCMP (AssetHub)
-| Number | Deliverable | Specification |
-| -----: | ----------- | ------------- |
-| 1. | XCM Escrow Adapter | Lock/unlock assets across parachains. |
-| 2. | AssetHub Integration | Support USDT & DOT order fulfilment on Polkadot AssetHub. |
-| 3. | Unified Address System | Single account interaction across connected chains. |
+-   #### Milestone 4 — XCMP (AssetHub)
+    Enable cross-chain asset interoperability via an **XCM Escrow Adapter** for locking/unlocking assets, 
+    integrate with Polkadot's **AssetHub** to facilitate USDT and DOT order fulfillment, 
+    and deploy a **Unified Address System** for seamless multi-chain account interactions.
 
 ### Long-Term
 **Multi-chain**: Expand OmniRamp as a multichain P2P platform enabled by verifiable interopreability.
